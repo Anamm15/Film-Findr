@@ -27,6 +27,7 @@ export const getMe = async () => {
     const response = await axios.get(`${BASE_URL}/me`, {
         withCredentials: true,
     });
+    console.log("response me: " + response);
     return response.data;
 };
 

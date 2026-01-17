@@ -9,8 +9,8 @@ const TextArea = (props) => {
       className,
       defaultValue } = props;
    return (
-      <div>
-         <label htmlFor={label} className="block text-secondary text-lg mb-2">{label}</label>
+      <div className="mt-4">
+         <label htmlFor={label} className="block text-secondary text-lg">{label}</label>
          <textarea
             id={label}
             className={`w-full mt-4 p-2 text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary ${className}`}

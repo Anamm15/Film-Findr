@@ -1,17 +1,19 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/authContext";
 import Detail from "./components/Detail";
 import Informasi from "./components/Informasi";
 import WatchlistLayout from "../../layouts/WatchlistLayout";
 import Pagination from "../../components/Pagination"
-import { useFetchWatchlist } from "../../hooks/watchlist/useFetchWatchlist";
 import Loading from "../../components/Loading";
+import { useFetchWatchlist } from "../../hooks/useWatchlist";
+import { INIT_PAGE_NUMBER } from "../../utils/constant";
 
 const WatchListPage = () => {
     const { user } = useContext(AuthContext);
-    const { watchlists, loading: watchlistLoading, page, setPage } = useFetchWatchlist(user?.id);
+    const [page, setPage] = useState(INIT_PAGE_NUMBER)
+    const { data: watchlists, loading: watchlistLoading } = useFetchWatchlist(user?.id, page);
     return (
-        <div className="mx-auto max-w-4xl mt-28 px-4 space-y-6">
+        <div className="mx-auto max-w-4xl mt-28 space-y-6 bg-white rounded-2xl shadow-lg border border-gray-100 py-6 px-12">
             <h1 className="text-3xl font-bold text-center mb-8">🎬 Your Watchlist</h1>
             {
                 watchlistLoading ? (

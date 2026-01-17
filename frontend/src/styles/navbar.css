@@ -1,7 +1,7 @@
 /* Style dasar untuk setiap link di navbar */
 .nav-link {
     position: relative; /* Diperlukan agar pseudo-element ::after bisa diposisikan */
-    padding-bottom: 8px; /* Memberi sedikit ruang untuk garis bawah */
+    padding-bottom: 2px; /* Memberi sedikit ruang untuk garis bawah */
     text-decoration: none; /* Menghilangkan garis bawah default */
     color: inherit; /* Mewarisi warna dari parent (text-primary) */
     transition: color 0.3s ease-in-out;
@@ -11,7 +11,7 @@
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: -2px;
     left: 0;
     width: 100%;
     height: 3px; /* Ketebalan garis bawah */
@@ -53,7 +53,7 @@
 .hamburger-line {
     width: 2rem;
     height: 3px;
-    background-color: #007BFF; /* Ganti dengan warna primary Anda */
+    background-color: #000 !important; /* Ganti dengan warna primary Anda */
     border-radius: 10px;
     transition: all 0.3s linear;
     position: relative;

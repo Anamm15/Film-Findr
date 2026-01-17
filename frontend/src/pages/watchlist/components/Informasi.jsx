@@ -1,4 +1,5 @@
 import { useMediaQuery } from "react-responsive";
+import { capitalize } from "../../../utils/string";
 
 const Informasi = (props) => {
     const { watch } = props;
@@ -22,11 +23,11 @@ const Informasi = (props) => {
             </p>
             <p className="text-secondary mt-1">
                 <span className="text-sm md:text-md font-medium text-gray-800">Status:</span>{" "}
-                {watch.film.status}
+                {capitalize(watch.film.status)}
             </p>
             <p className="text-secondary mt-1">
                 <span className="text-sm md:text-md font-medium text-gray-800">Watchlist:</span>{" "}
-                {watch.status}
+                {capitalize(watch.status)}
             </p>
         </div>
     )

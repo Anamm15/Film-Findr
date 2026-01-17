@@ -33,7 +33,7 @@ const Detail = (props) => {
                         className="appearance-none px-4 py-1 pr-10 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 w-full md:w-auto"
                         onChange={(e) => setStatus(e.target.value)}
                     >
-                        <option value="">Pilih Status</option>
+                        <option value="">Select Status</option>
                         {WATCH_LIST_STATUS.map((status) => (
                             <option key={status} value={status}>
                                 {status}
@@ -58,7 +58,7 @@ const Detail = (props) => {
                     className="rounded-lg py-[7px] w-full md:w-auto"
                     onClick={handleUpdate}
                 >
-                    Ubah Status
+                    Change Status
                 </Button>
             </div>
             {messages && (

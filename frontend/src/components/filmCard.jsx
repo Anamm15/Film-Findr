@@ -43,10 +43,10 @@ const FilmCard = ({ movie, onClick, children = null }) => {
             {/* Detail info (hanya tablet ke atas) */}
             <div className="hidden md:block text-sm text-gray-600 space-y-1">
                <p>
-                  <strong>Tanggal Rilis:</strong> {tanggal_rilis}
+                  <strong>Release Date:</strong> {tanggal_rilis}
                </p>
                <p>
-                  <strong>Durasi:</strong> {durasi} menit
+                  <strong>Duration:</strong> {durasi} minutes
                </p>
                <p>
                   <strong>Status:</strong>{" "}

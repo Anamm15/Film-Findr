@@ -1,134 +1,133 @@
-import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { logoutUser } from "../service/user";
-import { useContext } from "react";
-import { AuthContext } from "../contexts/authContext";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
+import { useLogout, useSession } from "../hooks/useUser";
 import Button from "./Button";
-import "../styles/Navbar.css";
 
 const Navbar = () => {
-   const { user } = useContext(AuthContext);
-   const [isMenuOpen, setIsMenuOpen] = useState(false);
+   const [isOpen, setIsOpen] = useState(false);
    const location = useLocation();
+   const { data: user, isLoading } = useSession()
+   const { mutateAsync: logout } = useLogout()
 
-   useEffect(() => {
-      setIsMenuOpen(false);
-   }, [location]);
+   const navLinks = [
+      { name: "Home", href: "/" },
+      { name: "Weekly Film", href: "/weekly-film" },
+      { name: "Profile", href: "/profile" },
+      { name: "Watchlist", href: "/watchlist" },
+   ];
 
-   useEffect(() => {
-      if (isMenuOpen) {
-         document.body.style.overflow = 'hidden';
-      } else {
-         document.body.style.overflow = 'auto';
-      }
-      // Cleanup function
-      return () => {
-         document.body.style.overflow = 'auto';
-      };
-   }, [isMenuOpen]);
+   const isActive = (path) => location.pathname === path;
 
-   const hanldeLogout = async () => {
+   const handleLogout = async () => {
       try {
-         const response = await logoutUser();
-         console.log(response);
-
-         if (response.status === 200) {
-            window.location.reload();
-         }
+         await logout()
+         window.location.reload()
       } catch (error) {
-         console.log(error);
+         console.log(error)
       }
    }
 
-   const navLinks = user ? (
-      <>
-         <NavLink to="/" className="nav-link" end>Home</NavLink>
-         <NavLink to="/top-films" className="nav-link" end>Top Film</NavLink>
-         <NavLink to={`/profile/${user?.username}`} className="nav-link">Profile</NavLink>
-         <NavLink to="/watchlist" className="nav-link">Watch List</NavLink>
-      </>
-   ) : null;
-
    return (
-      <>
-         {/* Navbar Utama */}
-         <nav className="fixed z-50 w-full bg-background backdrop-blur-sm border-b border-gray-200/50 h-20 top-0 left-0 flex justify-center items-center">
-            <div className="flex justify-between items-center w-full max-w-[1280px] px-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
                {/* Logo */}
-               <div className="text-3xl font-bold cursor-pointer text-primary z-50">
-                  <NavLink to="/">Film-Findr</NavLink>
+               <Link
+                  to="/"
+                  className="font-geist font-bold text-xl tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+               >
+                  Film-Findr
+               </Link>
+
+               {/* Desktop Menu */}
+               <div className="hidden md:flex items-center space-x-8">
+                  {user && navLinks.map((link) => (
+                     <Link
+                        key={link.name}
+                        to={link.href}
+                        className={`relative font-geist font-semibold text-sm transition-colors duration-200 ${isActive(link.href)
+                           ? "text-primary dark:text-white"
+                           : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                           }`}
+                     >
+                        {link.name}
+                        {isActive(link.href) && (
+                           <motion.div
+                              layoutId="activeNav"
+                              className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                           />
+                        )}
+                     </Link>
+                  ))}
+
+                  {
+                     isLoading && user ? (
+                        <Button className="text-sm font-semibold px-5" onClick={handleLogout}>Logout</Button>
+                     ) : (
+                        <div className="flex gap-2">
+                           <Link to="/login" className="text-sm font-semibold px-5 border border-gray-200 shadow-lg rounded-full py-2 transition-all duration-200 ease-in-out transform hover:scale-[98%]">Login</Link>
+                           <Link to="/register" className="text-sm font-semibold px-5 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 text-white py-2 rounded-full shadow shadow-blue-500 transition-all duration-200 ease-in-out transform hover:scale-[98%]">Register</Link>
+                        </div>
+                     )
+                  }
                </div>
 
-               {/* Menu Navigasi Desktop (sembunyi di mobile) */}
-               {user && (
-                  <div className="hidden md:flex items-center gap-10 font-bold text-xl text-primary">
-                     {navLinks}
-                  </div>
-               )}
-
-               {/* Tombol Auth Desktop (sembunyi di mobile) */}
-               <div className="hidden md:flex">
-                  {user ? (
-                     <Button onClick={hanldeLogout} className="w-28 py-2 rounded-lg font-semibold">Logout</Button>
-                  ) : (
-                     <div className="flex gap-5">
-                        <Button className="w-28 py-2 rounded-lg font-semibold"><NavLink to="/login">Login</NavLink></Button>
-                        <Button className="w-28 py-2 rounded-lg font-semibold"><NavLink to="/register">Register</NavLink></Button>
-                     </div>
-                  )}
-               </div>
-
-               {/* Tombol Hamburger (hanya tampil di mobile) */}
-               <div className="md:hidden z-50">
-                  <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="hamburger-button">
-                     <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`}></span>
-                     <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`}></span>
-                     <span className={`hamburger-line ${isMenuOpen ? 'open' : ''}`}></span>
+               <div className="md:hidden">
+                  <button
+                     onClick={() => setIsOpen(!isOpen)}
+                     className="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white p-2"
+                  >
+                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                   </button>
                </div>
             </div>
-         </nav>
-
-         {/* Overlay Latar Belakang */}
-         <div
-            onClick={() => setIsMenuOpen(false)}
-            className={`fixed inset-0 bg-black/50 z-30 transition-opacity duration-300
-                    ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-         />
-
-         {/* Mobile Menu Panel (Slide-in) */}
-         <div
-            className={`fixed bottom-0 right-0 h-full w-4/5 max-w-sm bg-background z-40
-                    transform transition-transform pt-20 duration-500 ease-in-out md:hidden
-                    ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
-         >
-            <div className="flex flex-col h-full p-5">
-               <nav className="flex flex-col flex-grow text-2xl font-semibold">
-                  <ul className={`mobile-menu-list ${isMenuOpen ? 'visible' : ''}`}>
-                     {user ? (
-                        <>
-                           <li><NavLink to="/" end>Home</NavLink></li>
-                           <li className="mt-4"><NavLink to="/top-films" end>Top Film</NavLink></li>
-                           <li className="mt-4"><NavLink to={`/profile/${user?.username}`}>Profile</NavLink></li>
-                           <li className="mt-4"><NavLink to="/watchlist">Watch List</NavLink></li>
-                        </>
-                     ) : (
-                        <>
-                           <Button className="w-full py-0.5 text-lg rounded-xl"><NavLink to="/login">Login</NavLink></Button>
-                           <Button className="w-full py-0.5 text-lg rounded-xl mt-2"><NavLink to="/register">Register</NavLink></Button>
-                        </>
-                     )}
-                  </ul>
-               </nav>
-
-               {user && (
-                  <div className={`mobile-menu-list ${isMenuOpen ? 'visible' : ''}`}>
-                     <Button onClick={hanldeLogout} className="w-full py-0.5 rounded-xl text-lg">Logout</Button>
-                  </div>
-               )}
-            </div>
          </div>
-      </>
+
+         <AnimatePresence>
+            {isOpen && (
+               <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "350px" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="md:hidden overflow-hidden bg-white dark:bg-black "
+               >
+                  <div className="flex flex-col items-center justify-center h-full space-y-6">
+                     {user && navLinks.map((link) => (
+                        <Link
+                           key={link.name}
+                           to={link.href}
+                           onClick={() => setIsOpen(false)}
+                           className={`font-geist font-semibold text-lg ${isActive(link.href)
+                              ? "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400"
+                              : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                              }`}
+                        >
+                           {link.name}
+                        </Link>
+                     ))}
+
+                     <div className="w-full flex flex-col gap-4 items-center">
+                        {
+                           isLoading && user ? (
+                              <Button className="font-semibold px-5" onClick={handleLogout}>Logout</Button>
+                           ) : (
+                              <>
+                                 <Link to="/login" className="w-40 font-semibold px-5 border border-gray-200 shadow-lg rounded-md py-2 transition-all duration-200 ease-in-out transform hover:scale-[98%] text-center">Login</Link>
+                                 <Link to="/register" className="w-40 font-semibold px-5 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 text-white py-2 rounded-md shadow shadow-blue-500 transition-all duration-200 ease-in-out transform hover:scale-[98%] text-center">Register</Link>
+                              </>
+                           )
+                        }
+                     </div>
+                  </div>
+               </motion.div>
+            )
+            }
+         </AnimatePresence >
+      </nav >
    );
 };
 

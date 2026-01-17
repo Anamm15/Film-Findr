@@ -25,7 +25,7 @@ const AppRoutes = () => {
          <Route path="/register" element={<RegisterPage />} />
          <Route path="/film/:id" element={<DetailFilmPage />} />
          <Route path="/profile/:username" element={<ProfilePage />} />
-         <Route path="/top-films" element={<TopFilmPage />} />
+         <Route path="/weekly-films" element={<TopFilmPage />} />
 
          <Route
             path="/watchlist"

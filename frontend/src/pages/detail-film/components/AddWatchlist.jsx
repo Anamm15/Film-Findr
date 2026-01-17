@@ -11,9 +11,15 @@ const WatchListForm = (props) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (watchListStatus === "") {
+            setMessage("Please select a status.");
+            setColorMessage("text-red-600");
+            return;
+        }
+
         try {
             const data = {
-                film_id: Number(id),
+                film_id: id,
                 status: watchListStatus
             }
             const response = await createUserFilm(data)
@@ -22,6 +28,7 @@ const WatchListForm = (props) => {
         } catch (error) {
             setMessage(error.response.data.error);
             setColorMessage("text-red-600");
+            console.log(error);
         }
     }
 
@@ -31,15 +38,15 @@ const WatchListForm = (props) => {
                 className="rounded-xl flex gap-4 sm:gap-5 items-center"
                 onSubmit={handleSubmit}
             >
-                <div className="relative max-w-sm text-md md:text-lg">
+                <div className="relative max-w-sm text-md">
                     <select
                         className="appearance-none px-4 py-[5px] pr-10 rounded-full border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                         onChange={(e) => setWatchListStatus(e.target.value)}
                     >
-                        <option value="">Pilih Status</option>
+                        <option value="">Select Status</option>
                         {WATCH_LIST_STATUS.map((status) => (
                             <option key={status} value={status}>
-                                {status}
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
                             </option>
                         ))}
                     </select>
@@ -58,9 +65,9 @@ const WatchListForm = (props) => {
                 </div>
                 <Button
                     type="submit"
-                    className="text-md md:text-lg rounded-full px-5"
+                    className="text-md rounded-full px-5"
                 >
-                    Add Watchlist
+                    Add to Watchlist
                 </Button>
             </form>
             <p className={`${colorMessage} text-sm mt-1 ps-2`}>{message}</p>

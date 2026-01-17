@@ -60,6 +60,7 @@ const AddFilmPage = () => {
             setColorMessage("text-green-600");
          }
       } catch (error) {
+         console.log(error);
          setMessage(error.data.message);
          setColorMessage("text-red-600");
       }

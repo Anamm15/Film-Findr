@@ -1,43 +1,25 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { getMe } from "../service/user";
+import React, { useMemo } from "react";
 import { AuthContext } from "./authContext";
+import { useSession } from "../hooks/useUser";
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const hasFetched = useRef(false);
+  const {
+    data: user,
+    isLoading: loading,
+    refetch,
+  } = useSession();
 
-  const fetchUserOnce = useCallback(async () => {
-    if (hasFetched.current) return;
-    hasFetched.current = true;
-
-    try {
-      const response = await getMe();
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refetchUser = useCallback(async () => {
-    try {
-      const response = await getMe();
-      setUser(response.data.data);
-    } catch (error) {
-      console.error("Error refetching user:", error);
-      setUser(null);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUserOnce();
-  }, [fetchUserOnce]);
+  const value = useMemo(
+    () => ({
+      user,
+      loading,
+      refetchUser: refetch,
+    }),
+    [user, loading, refetch]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading, refetchUser }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

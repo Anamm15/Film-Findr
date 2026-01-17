@@ -13,11 +13,11 @@ const InformasiFilm = (props) => {
                     </span>
                 ))}
             </div>
-            <p><strong>Tanggal Rilis:</strong> {film.tanggal_rilis}</p>
-            <p><strong>Durasi:</strong> {film.durasi} menit</p>
+            <p><strong>Release Date:</strong> {film.tanggal_rilis}</p>
+            <p><strong>Duration:</strong> {film.durasi} menit</p>
             <p><strong>Status:</strong> <span className="capitalize">{film.status}</span></p>
             <p><strong>Rating:</strong> ⭐ {film.rating}/10</p>
-            <p><strong>Sutradara:</strong> {film.sutradara}</p>
+            <p><strong>Director:</strong> {film.sutradara}</p>
             <p><strong>Total Episode:</strong> {film.total_episode}</p>
         </div>
     )

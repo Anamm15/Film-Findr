@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'inter': ['Inter', 'sans-serif'],
+        geist: ['Geist', 'sans-serif'],
       },
       colors: {
         'primary': '#007BFF',

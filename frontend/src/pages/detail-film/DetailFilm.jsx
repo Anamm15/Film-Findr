@@ -6,16 +6,23 @@ import Sinopsis from "./components/Sinopsis";
 import ReviewLayout from "../../layouts/ReviewLayout";
 import InformasiFilm from "./components/InformasiFilm";
 import Gambar from "./components/Gambar";
-import { useFetchFilm } from "../../hooks/film/useFetchFilm";
-import { useFetchFilms } from "../../hooks/film/UseFetchFilms";
-import { useFetchReviewByFilmId } from "../../hooks/review/useFetchReviewByFilmId";
+import { useFetchFilmById } from "../../hooks/useFilm";
+import { useReviewsByFilm } from "../../hooks/useReview";
 import PageLoading from "../../components/PageLoading";
+import { useState, useEffect } from "react";
+import { INIT_PAGE_NUMBER } from "../../utils/constant";
 
 const DetailFilmPage = () => {
    const { id } = useParams();
-   const { film, page, setPage, loading: loadingFilms } = useFetchFilm(id);
-   const { reviews, setReviews, loading: loadingReviews } = useFetchReviewByFilmId(id, page);
-   const { films } = useFetchFilms();
+   const [page, setPage] = useState(INIT_PAGE_NUMBER);
+   const { data: films, loading: loadingFilms } = useFetchFilmById(id);
+   const { data, loading: loadingReviews } = useReviewsByFilm(id, page);
+   const [reviews, setReviews] = useState();
+
+   useEffect(() => {
+      if (!data) return
+      setReviews(data)
+   }, [data, reviews]);
 
    if (loadingFilms) {
       return <PageLoading message="Loading film..." />;
@@ -24,17 +31,17 @@ const DetailFilmPage = () => {
    return (
       <div className="max-w-5xl mx-auto px-4 pb-10 bg-background">
          {
-            film && (
+            films && (
                <>
                   <div className="flex flex-col md:flex-row gap-6 my-8 shadow-md rounded-xl p-4 relative mt-28">
-                     <Gambar film={film} />
+                     <Gambar film={films} />
                      <div>
-                        <InformasiFilm film={film} />
+                        <InformasiFilm film={films} />
                         <WatchListForm id={id} />
                      </div>
                   </div>
 
-                  <Sinopsis sinopsis={film.sinopsis} />
+                  <Sinopsis sinopsis={films.sinopsis} />
                   <ReviewLayout review={reviews} setReviews={setReviews} setPage={setPage} page={page} loading={loadingReviews} />
                   <AddReview id={id} setReviews={setReviews} />
                   {

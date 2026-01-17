@@ -2,16 +2,20 @@ import { useState } from "react";
 import { searchFilm } from "../../service/film";
 import ListFilm from "./components/ListFilm";
 import Button from "../../components/Button";
-import { useFetchFilms } from "../../hooks/film/UseFetchFilms";
+import { useFetchFilms } from "../../hooks/useFilm";
+import { useEffect } from "react";
+import { INIT_PAGE_NUMBER } from "../../utils/constant";
 
 const LandingPage = () => {
-   const {
-      films,
-      setFilms,
-      page,
-      setPage,
-      loading } = useFetchFilms();
+   const [page, setPage] = useState(INIT_PAGE_NUMBER);
+   const { data, loading } = useFetchFilms(page);
+   const [films, setFilms] = useState(data);
    const [searchQuery, setSearchQuery] = useState("");
+
+   useEffect(() => {
+      if (!data) return;
+      setFilms(data)
+   }, [data]);
 
    const handleSearch = async () => {
       try {
@@ -19,6 +23,7 @@ const LandingPage = () => {
          setFilms(response.data.data);
       } catch (error) {
          console.error("Error searching films:", error);
+         setFilms([]);
       }
    };
 
@@ -34,7 +39,7 @@ const LandingPage = () => {
                      onKeyDown={(e) => {
                         if (e.key === "Enter") handleSearch();
                      }}
-                     placeholder="🔍 Cari film berdasarkan judul..."
+                     placeholder="🔍 Search film you interested..."
                      className="w-full py-3 pl-5 pr-12 rounded-xl border border-gray-300 shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 bg-white text-gray-700 md:text-lg"
                   />
                   {searchQuery && (
@@ -48,16 +53,22 @@ const LandingPage = () => {
                </div>
                <Button
                   onClick={handleSearch}
-                  className="px-2 md:px-6 py-3 flex items-center text-xl rounded-xl bg-gradient-primary text-white font-semibold hover:bg-opacity-90 transition-all shadow"
+                  className="px-2 md:px-6 py-3 flex items-center text-xl rounded-xl bg-gradient-primary text-white font-semibold hover:bg-opacity-90 transition-all shadow gap-1"
                >
                   <span>🔍</span>
                   <span className="hidden md:inline">Cari</span>
                </Button>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-text">Daftar Film</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-text font-geist">Last Film</h1>
             {
                films && <ListFilm films={films} page={page} setPage={setPage} loading={loading} />
+            }
+            {
+               films?.length === 0 && (
+                  <h1 className="text-lg mb-4 w-full text-center font-geist">Film not found</h1>
+
+               )
             }
          </div>
       </>
