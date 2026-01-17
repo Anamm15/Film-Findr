@@ -11,12 +11,12 @@ const (
 
 type (
 	GetDashboardResponse struct {
-		CountUsers    int            `json:"count_users"`
-		CountReview   int            `json:"count_review"`
-		TopFilms      []TopFilm      `json:"top_films"`
-		TrendingFilms []TrendingFilm `json:"trending_films"`
-		WeeklyUsers   []WeeklyUser   `json:"weekly_users"`
-		WeeklyReviews []WeeklyReview `json:"weekly_reviews"`
+		CountUsers    int                  `json:"count_users"`
+		CountReview   int                  `json:"count_review"`
+		TopFilms      []FilmDetailResponse `json:"top_films"`
+		TrendingFilms []FilmDetailResponse `json:"trending_films"`
+		WeeklyUsers   []WeeklyUser         `json:"weekly_users"`
+		WeeklyReviews []WeeklyReview       `json:"weekly_reviews"`
 	}
 
 	GetReviewDashboardResponse struct {

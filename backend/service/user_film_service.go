@@ -11,9 +11,9 @@ import (
 )
 
 type UserFilmService interface {
-	GetUserFilmByUserId(ctx context.Context, userId int, page int) (dto.GetUserFilmResponse, error)
+	GetUserFilmByUserId(ctx context.Context, userId string, page string) (dto.PaginatedUserFilmResponse, error)
 	CreateUserFilm(ctx context.Context, userFilm dto.UserFilmCreateRequest) (entity.UserFilm, error)
-	UpdateStatusUserFilm(ctx context.Context, userFilmId int, userFilm dto.UserFilmUpdateStatusRequest) error
+	UpdateStatusUserFilm(ctx context.Context, userFilmId string, userFilm dto.UserFilmUpdateStatusRequest) error
 }
 
 type userFilmService struct {
@@ -31,17 +31,28 @@ func NewUserFilmService(
 	}
 }
 
-func (s *userFilmService) GetUserFilmByUserId(ctx context.Context, userId int, page int) (dto.GetUserFilmResponse, error) {
-	userFilms, countUserFilm, err := s.userFilmRepository.GetUserFilmByUserId(ctx, userId, page)
+func (s *userFilmService) GetUserFilmByUserId(ctx context.Context, userIdParam string, pageQuery string) (dto.PaginatedUserFilmResponse, error) {
+	userID, err := utils.StringToUUID(userIdParam)
 	if err != nil {
-		return dto.GetUserFilmResponse{}, dto.ErrGetUserFilm
+		return dto.PaginatedUserFilmResponse{}, err
+	}
+
+	page, err := utils.StringToInt(pageQuery)
+	if err != nil || page < 0 {
+		page = 1
+	}
+
+	offset := (page - 1) % helpers.LIMIT_FILM
+	userFilms, countUserFilm, err := s.userFilmRepository.GetUserFilmByUserId(ctx, userID, offset)
+	if err != nil {
+		return dto.PaginatedUserFilmResponse{}, dto.ErrGetUserFilm
 	}
 
 	var userFilmResponses []dto.UserFilmResponse
 	for _, userFilm := range userFilms {
 		var FilmGambarResponse []dto.FilmGambarResponse
 		var FilmGenreResponse []dto.GenreResponse
-		var FilmResponse dto.FilmResponse
+		var FilmResponse dto.FilmDetailResponse
 
 		for _, FilmGambar := range userFilm.Film.FilmGambar {
 			FilmGambarResponse = append(FilmGambarResponse, dto.FilmGambarResponse{
@@ -58,7 +69,7 @@ func (s *userFilmService) GetUserFilmByUserId(ctx context.Context, userId int, p
 		}
 
 		formattedDate := utils.FormatDate(userFilm.Film.TanggalRilis)
-		FilmResponse = dto.FilmResponse{
+		FilmResponse = dto.FilmDetailResponse{
 			ID:           userFilm.Film.ID,
 			Judul:        userFilm.Film.Judul,
 			TanggalRilis: formattedDate,
@@ -75,7 +86,7 @@ func (s *userFilmService) GetUserFilmByUserId(ctx context.Context, userId int, p
 		})
 	}
 
-	var GetUserFilmResponse dto.GetUserFilmResponse
+	var GetUserFilmResponse dto.PaginatedUserFilmResponse
 	GetUserFilmResponse.UserFilms = userFilmResponses
 	GetUserFilmResponse.CountPage = int(countUserFilm)
 	return GetUserFilmResponse, nil
@@ -110,7 +121,12 @@ func (s *userFilmService) CreateUserFilm(ctx context.Context, userFilmReq dto.Us
 	return userFilmRes, nil
 }
 
-func (s *userFilmService) UpdateStatusUserFilm(ctx context.Context, userFilmId int, userFilm dto.UserFilmUpdateStatusRequest) error {
+func (s *userFilmService) UpdateStatusUserFilm(ctx context.Context, idParam string, userFilm dto.UserFilmUpdateStatusRequest) error {
+	userFilmId, err := utils.StringToUUID(idParam)
+	if err != nil {
+		return err
+	}
+
 	film, err := s.filmRepository.CheckStatusFilm(ctx, userFilm.FilmID)
 	if err != nil {
 		return err

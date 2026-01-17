@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:5000/api/v1/users
+
+###
+GET {{baseUrl}}?username=andi_cinema
+
+###
+GET {{baseUrl}}/me
+
+###
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+   "username": "andi_cinema",
+   "password": "securepass123"
+}

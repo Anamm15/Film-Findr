@@ -6,12 +6,13 @@ import (
 	"FilmFindr/dto"
 	"FilmFindr/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type FilmGambarRepository interface {
 	Save(ctx context.Context, tx *gorm.DB, filmGambar entity.FilmGambar) error
-	FindFilmGambarByFilmIDs(ctx context.Context, filmIDs []int) ([]dto.FilmGambarResponse, error)
+	FindFilmGambarByFilmIDs(ctx context.Context, filmIDs []uuid.UUID) ([]dto.FilmGambarResponse, error)
 }
 
 type filmGambarRepository struct {
@@ -29,7 +30,7 @@ func (r *filmGambarRepository) Save(ctx context.Context, tx *gorm.DB, filmGambar
 	return nil
 }
 
-func (r *filmGambarRepository) FindFilmGambarByFilmIDs(ctx context.Context, filmIDs []int) ([]dto.FilmGambarResponse, error) {
+func (r *filmGambarRepository) FindFilmGambarByFilmIDs(ctx context.Context, filmIDs []uuid.UUID) ([]dto.FilmGambarResponse, error) {
 	var gambar []dto.FilmGambarResponse
 	err := r.db.WithContext(ctx).
 		Model(entity.FilmGambar{}).

@@ -1,6 +1,11 @@
 package dto
 
-import "errors"
+import (
+	"errors"
+	"time"
+
+	"github.com/google/uuid"
+)
 
 const (
 	// failed
@@ -24,14 +29,14 @@ var (
 
 type (
 	GenreRequest struct {
-		ID   int    `json:"id"`
 		Nama string `json:"nama" validate:"required" binding:"required"`
 	}
 
 	GenreResponse struct {
-		ID     int    `json:"id"`
-		FilmID int    `json:"film_id"`
-		Nama   string `json:"nama"`
+		ID        uuid.UUID `json:"id"`
+		FilmID    uuid.UUID `json:"film_id"`
+		Nama      string    `json:"nama"`
+		CreatedAt time.Time `json:"created_at"`
 	}
 
 	GenreListAndCountResponse struct {
@@ -39,3 +44,13 @@ type (
 		Count int64  `json:"count" gorm:"column:count"`
 	}
 )
+
+func MapGenresByFilmID(genres []GenreResponse) map[uuid.UUID][]GenreResponse {
+	result := make(map[uuid.UUID][]GenreResponse)
+
+	for _, g := range genres {
+		result[g.FilmID] = append(result[g.FilmID], g)
+	}
+
+	return result
+}

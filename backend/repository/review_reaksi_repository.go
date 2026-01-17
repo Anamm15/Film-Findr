@@ -6,11 +6,12 @@ import (
 	"FilmFindr/dto"
 	"FilmFindr/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReaksiReviewRepository interface {
-	GetReaksiReviewByUserId(ctx context.Context, reviewId int, userId int) (dto.UserReaksiReview, error)
+	GetReaksiReviewByUserId(ctx context.Context, reviewId uuid.UUID, userId uuid.UUID) (dto.UserReaksiReview, error)
 	UpdateOrCreateUserReaksi(ctx context.Context, review entity.ReaksiReview) error
 }
 
@@ -22,7 +23,7 @@ func NewReaksiReviewRepository(db *gorm.DB) ReaksiReviewRepository {
 	return &reviewReaksiRepository{db: db}
 }
 
-func (r *reviewReaksiRepository) GetReaksiReviewByUserId(ctx context.Context, reviewId int, userId int) (dto.UserReaksiReview, error) {
+func (r *reviewReaksiRepository) GetReaksiReviewByUserId(ctx context.Context, reviewId uuid.UUID, userId uuid.UUID) (dto.UserReaksiReview, error) {
 	var reaksiReview entity.ReaksiReview
 	if err := r.db.WithContext(ctx).
 		Select("id", "reaksi", "user_id").

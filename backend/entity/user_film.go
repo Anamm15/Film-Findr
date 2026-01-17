@@ -1,14 +1,17 @@
 package entity
 
 import (
-	"gorm.io/gorm"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type UserFilm struct {
-	gorm.Model
-	Status string `json:"status" binding:"required"`
-	UserID int    `json:"user_id" gorm:"not null index:idx_user_id"`
-	FilmID int    `json:"film_id" gorm:"not null index:idx_film_id"`
-	User   User   `gorm:"foreignKey:UserID" json:"user"`
-	Film   Film   `gorm:"foreignKey:FilmID" json:"film"`
+	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Status    string    `gorm:"type:varchar(50);not null"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null;index:idx_user_id"`
+	FilmID    uuid.UUID `gorm:"type:uuid;not null;index:idx_film_id"`
+	User      User      `gorm:"foreignKey:UserID" json:"user"`
+	Film      Film      `gorm:"foreignKey:FilmID" json:"film"`
+	CreatedAt time.Time `gorm:"type:timestamptz;default:now()"`
 }

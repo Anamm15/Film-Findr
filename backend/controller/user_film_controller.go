@@ -1,13 +1,12 @@
 package controller
 
 import (
-	"strconv"
-
 	"FilmFindr/dto"
 	"FilmFindr/service"
 	"FilmFindr/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type UserFilmController interface {
@@ -25,20 +24,10 @@ func NewUserFilmController(userFilmService service.UserFilmService) UserFilmCont
 }
 
 func (u *userFilmController) GetUserFilmByUserId(ctx *gin.Context) {
-	userIdParam := ctx.Param("id")
-	pageStr := ctx.Query("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
-	userId, err := strconv.Atoi(userIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	userID := ctx.Param("id")
+	page := ctx.Query("page")
 
-	userFilms, err := u.userFilmService.GetUserFilmByUserId(ctx, userId, page)
+	userFilms, err := u.userFilmService.GetUserFilmByUserId(ctx, userID, page)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER_FILM, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
@@ -50,7 +39,7 @@ func (u *userFilmController) GetUserFilmByUserId(ctx *gin.Context) {
 }
 
 func (u *userFilmController) CreateUserFilm(ctx *gin.Context) {
-	userId := ctx.MustGet("user_id").(int)
+	userId := ctx.MustGet("user_id").(uuid.UUID)
 
 	var userFilmReq dto.UserFilmCreateRequest
 	userFilmReq.UserID = userId
@@ -63,7 +52,7 @@ func (u *userFilmController) CreateUserFilm(ctx *gin.Context) {
 	userFilm, err := u.userFilmService.CreateUserFilm(ctx, userFilmReq)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATED_USER_FILM, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
+		ctx.JSON(dto.STATUS_INTERNAL_SERVER_ERROR, res)
 		return
 	}
 
@@ -72,13 +61,7 @@ func (u *userFilmController) CreateUserFilm(ctx *gin.Context) {
 }
 
 func (u *userFilmController) UpdateStatusUserFilm(ctx *gin.Context) {
-	userFilmIdParam := ctx.Param("id")
-	userFilmId, err := strconv.Atoi(userFilmIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	userFilmId := ctx.Param("id")
 
 	var userFilmReq dto.UserFilmUpdateStatusRequest
 	if err := ctx.ShouldBindJSON(&userFilmReq); err != nil {
@@ -87,7 +70,7 @@ func (u *userFilmController) UpdateStatusUserFilm(ctx *gin.Context) {
 		return
 	}
 
-	err = u.userFilmService.UpdateStatusUserFilm(ctx, userFilmId, userFilmReq)
+	err := u.userFilmService.UpdateStatusUserFilm(ctx, userFilmId, userFilmReq)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATED_USER_FILM, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)

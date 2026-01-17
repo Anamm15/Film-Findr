@@ -6,13 +6,14 @@ import (
 	"FilmFindr/dto"
 	"FilmFindr/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type GenreRepository interface {
 	GetAllGenre(ctx context.Context) ([]entity.Genre, error)
 	CreateGenre(ctx context.Context, genre entity.Genre) (entity.Genre, error)
-	DeleteGenre(ctx context.Context, genreId int) error
+	DeleteGenre(ctx context.Context, genreId uuid.UUID) error
 	GetGenreListAndCount(ctx context.Context) ([]dto.GenreListAndCountResponse, error)
 }
 
@@ -39,7 +40,7 @@ func (r *genreRepository) CreateGenre(ctx context.Context, genre entity.Genre) (
 	return genre, err
 }
 
-func (r *genreRepository) DeleteGenre(ctx context.Context, genreId int) error {
+func (r *genreRepository) DeleteGenre(ctx context.Context, genreId uuid.UUID) error {
 	err := r.db.WithContext(ctx).Delete(&entity.Genre{}, genreId).Error
 	return err
 }

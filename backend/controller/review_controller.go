@@ -1,13 +1,12 @@
 package controller
 
 import (
-	"strconv"
-
 	"FilmFindr/dto"
 	"FilmFindr/service"
 	"FilmFindr/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type ReviewController interface {
@@ -35,19 +34,8 @@ func NewReviewController(
 }
 
 func (c *reviewController) GetReviewByUserId(ctx *gin.Context) {
-	userReviewIdParam := ctx.Param("id")
-	pageStr := ctx.Query("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
-
-	userReviewId, err := strconv.Atoi(userReviewIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	userReviewId := ctx.Param("id")
+	page := ctx.Query("page")
 
 	tokenStr, _ := ctx.Cookie("access_token")
 	userId, _, _ := c.jwtService.GetDataByToken(tokenStr)
@@ -63,19 +51,8 @@ func (c *reviewController) GetReviewByUserId(ctx *gin.Context) {
 }
 
 func (c *reviewController) GetReviewByFilmId(ctx *gin.Context) {
-	filmIdParam := ctx.Param("id")
-	pageStr := ctx.Query("page")
-	page, err := strconv.Atoi(pageStr)
-	if err != nil || page < 1 {
-		page = 1
-	}
-
-	filmId, err := strconv.Atoi(filmIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	filmId := ctx.Param("id")
+	page := ctx.Query("page")
 
 	tokenStr, _ := ctx.Cookie("access_token")
 	userId, _, _ := c.jwtService.GetDataByToken(tokenStr)
@@ -91,8 +68,7 @@ func (c *reviewController) GetReviewByFilmId(ctx *gin.Context) {
 }
 
 func (c *reviewController) CreateReview(ctx *gin.Context) {
-	var userId int
-	userId = ctx.MustGet("user_id").(int)
+	userID := ctx.MustGet("user_id").(uuid.UUID)
 
 	var review dto.CreateReviewRequest
 	if err := ctx.ShouldBindJSON(&review); err != nil {
@@ -101,7 +77,7 @@ func (c *reviewController) CreateReview(ctx *gin.Context) {
 		return
 	}
 
-	createdReview, err := c.reviewService.CreateReview(ctx, review, userId)
+	createdReview, err := c.reviewService.CreateReview(ctx, review, userID)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_CREATED_REVIEW, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
@@ -113,13 +89,7 @@ func (c *reviewController) CreateReview(ctx *gin.Context) {
 }
 
 func (c *reviewController) UpdateReview(ctx *gin.Context) {
-	reviewIdParam := ctx.Param("id")
-	reviewId, err := strconv.Atoi(reviewIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	reviewId := ctx.Param("id")
 
 	var review dto.UpdateReviewRequest
 	if err := ctx.ShouldBindJSON(&review); err != nil {
@@ -128,7 +98,7 @@ func (c *reviewController) UpdateReview(ctx *gin.Context) {
 		return
 	}
 
-	err = c.reviewService.UpdateReview(ctx, reviewId, review)
+	err := c.reviewService.UpdateReview(ctx, reviewId, review)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATED_REVIEW, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
@@ -140,14 +110,8 @@ func (c *reviewController) UpdateReview(ctx *gin.Context) {
 }
 
 func (c *reviewController) UpdateReaksiReview(ctx *gin.Context) {
-	userId := ctx.MustGet("user_id").(int)
-	reviewIdParam := ctx.Param("id")
-	reviewId, err := strconv.Atoi(reviewIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	userId := ctx.MustGet("user_id").(uuid.UUID)
+	reviewId := ctx.Param("id")
 
 	var reaksi dto.UpdateReaksiReviewRequest
 	if err := ctx.ShouldBindJSON(&reaksi); err != nil {
@@ -156,7 +120,7 @@ func (c *reviewController) UpdateReaksiReview(ctx *gin.Context) {
 		return
 	}
 
-	err = c.reviewService.UpdateReaksiReview(ctx, reviewId, userId, reaksi)
+	err := c.reviewService.UpdateReaksiReview(ctx, reviewId, userId, reaksi)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATED_REVIEW, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
@@ -168,15 +132,9 @@ func (c *reviewController) UpdateReaksiReview(ctx *gin.Context) {
 }
 
 func (c *reviewController) DeleteReview(ctx *gin.Context) {
-	reviewIdParam := ctx.Param("id")
-	reviewId, err := strconv.Atoi(reviewIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
+	reviewId := ctx.Param("id")
 
-	err = c.reviewService.DeleteReview(ctx, reviewId)
+	err := c.reviewService.DeleteReview(ctx, reviewId)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_DELETED_REVIEW, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)

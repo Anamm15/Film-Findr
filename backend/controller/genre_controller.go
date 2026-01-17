@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"strconv"
-
 	"FilmFindr/dto"
 	"FilmFindr/service"
 	"FilmFindr/utils"
@@ -58,14 +56,7 @@ func (s *genreController) CreateGenre(ctx *gin.Context) {
 }
 
 func (s *genreController) DeleteGenre(ctx *gin.Context) {
-	genreIdParam := ctx.Param("id")
-	genreId, err := strconv.Atoi(genreIdParam)
-	if err != nil {
-		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_INVALID_PARAMETER, err.Error(), nil)
-		ctx.JSON(dto.STATUS_BAD_REQUEST, res)
-		return
-	}
-
+	genreId := ctx.Param("id")
 	var genre dto.GenreRequest
 	if err := ctx.ShouldBindJSON(&genre); err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_REQUIRED_FIELD, err.Error(), nil)
@@ -73,7 +64,7 @@ func (s *genreController) DeleteGenre(ctx *gin.Context) {
 		return
 	}
 
-	err = s.genreService.DeleteGenre(ctx, genreId)
+	err := s.genreService.DeleteGenre(ctx, genreId)
 	if err != nil {
 		res := utils.BuildResponseFailed(dto.MESSAGE_FAILED_UPDATED_GENRE, err.Error(), nil)
 		ctx.JSON(dto.STATUS_BAD_REQUEST, res)

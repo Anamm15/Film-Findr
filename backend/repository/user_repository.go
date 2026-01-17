@@ -6,16 +6,17 @@ import (
 	"FilmFindr/dto"
 	"FilmFindr/entity"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	GetAllUser(ctx context.Context) ([]entity.User, error)
-	GetUserById(ctx context.Context, id int) (entity.User, error)
-	CreateUser(ctx context.Context, user entity.User) (entity.User, error)
+	GetUserById(ctx context.Context, userID uuid.UUID) (entity.User, error)
+	CreateUser(ctx context.Context, user *entity.User) error
 	GetUserByUsername(ctx context.Context, username string) (entity.User, error)
 	UpdateUser(ctx context.Context, user dto.UserUpdateRequest) error
-	DeleteUser(ctx context.Context, id int) error
+	DeleteUser(ctx context.Context, id uuid.UUID) error
 	CountUsers(ctx context.Context) (int64, error)
 	GetWeeklyUsers(ctx context.Context) ([]dto.WeeklyUser, error)
 }
@@ -39,12 +40,12 @@ func (r *userRepository) GetAllUser(ctx context.Context) ([]entity.User, error) 
 	return user, nil
 }
 
-func (r *userRepository) GetUserById(ctx context.Context, userId int) (entity.User, error) {
+func (r *userRepository) GetUserById(ctx context.Context, userID uuid.UUID) (entity.User, error) {
 	var user entity.User
 
 	if err := r.db.WithContext(ctx).
 		Select("id", "username", "nama", "bio", "photo_profil", "role").
-		Where("id = ?", userId).
+		Where("id = ?", userID).
 		First(&user).Error; err != nil {
 		return entity.User{}, err
 	}
@@ -52,12 +53,12 @@ func (r *userRepository) GetUserById(ctx context.Context, userId int) (entity.Us
 	return user, nil
 }
 
-func (r *userRepository) CreateUser(ctx context.Context, user entity.User) (entity.User, error) {
+func (r *userRepository) CreateUser(ctx context.Context, user *entity.User) error {
 	if err := r.db.WithContext(ctx).Create(&user).Error; err != nil {
-		return entity.User{}, err
+		return err
 	}
 
-	return user, nil
+	return nil
 }
 
 func (r *userRepository) GetUserByUsername(ctx context.Context, username string) (entity.User, error) {
@@ -100,8 +101,8 @@ func (r *userRepository) UpdateUser(ctx context.Context, userReq dto.UserUpdateR
 	return nil
 }
 
-func (r *userRepository) DeleteUser(ctx context.Context, userId int) error {
-	if err := r.db.WithContext(ctx).Delete(&entity.User{}, &userId).Error; err != nil {
+func (r *userRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	if err := r.db.WithContext(ctx).Delete(&entity.User{}, &userID).Error; err != nil {
 		return err
 	}
 

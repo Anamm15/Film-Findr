@@ -9,18 +9,20 @@ import (
 	"FilmFindr/helpers"
 	"FilmFindr/repository"
 	"FilmFindr/utils"
+
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
+	"github.com/google/uuid"
 )
 
 type UserService interface {
 	GetAllUser(ctx context.Context) ([]dto.UserResponse, error)
-	GetUserById(ctx context.Context, id int) (dto.UserResponse, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (dto.UserResponse, error)
 	GetUserByUsername(ctx context.Context, username string) (dto.UserResponse, error)
 	RegisterUser(ctx context.Context, user dto.UserCreateRequest, photoProfil *multipart.FileHeader) (dto.UserResponse, error)
 	LoginUser(ctx context.Context, req dto.UserLoginRequest) (entity.User, error)
 	UpdateUser(ctx context.Context, user dto.UserUpdateRequest, photoProfil *multipart.FileHeader) error
-	DeleteUser(ctx context.Context, id int) error
+	DeleteUser(ctx context.Context, id string) error
 }
 
 type userService struct {
@@ -43,35 +45,23 @@ func (s *userService) GetAllUser(ctx context.Context) ([]dto.UserResponse, error
 
 	var userResponse []dto.UserResponse
 	for _, user := range users {
-		userResponse = append(userResponse, dto.UserResponse{
-			ID:          user.ID,
-			Username:    user.Username,
-			Nama:        user.Nama,
-			Bio:         user.Bio,
-			PhotoProfil: user.PhotoProfil,
-		})
+		userResponse = append(userResponse, dto.EntityToUserResponse(user))
 	}
 
 	return userResponse, nil
 }
 
-func (s *userService) GetUserById(ctx context.Context, id int) (dto.UserResponse, error) {
+func (s *userService) GetUserById(ctx context.Context, id uuid.UUID) (dto.UserResponse, error) {
 	user, err := s.userRepository.GetUserById(ctx, id)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrGetUserByID
 	}
 
-	if user.ID == 0 {
+	if uuid.Nil == user.ID {
 		return dto.UserResponse{}, dto.ErrUserNotFound
 	}
 
-	return dto.UserResponse{
-		ID:          user.ID,
-		Username:    user.Username,
-		Nama:        user.Nama,
-		Bio:         user.Bio,
-		PhotoProfil: user.PhotoProfil,
-	}, nil
+	return dto.EntityToUserResponse(user), nil
 }
 
 func (s *userService) GetUserByUsername(ctx context.Context, username string) (dto.UserResponse, error) {
@@ -80,17 +70,11 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (d
 		return dto.UserResponse{}, dto.ErrGetUserByID
 	}
 
-	if user.ID == 0 {
+	if user.ID == uuid.Nil {
 		return dto.UserResponse{}, dto.ErrUserNotFound
 	}
 
-	return dto.UserResponse{
-		ID:          user.ID,
-		Username:    user.Username,
-		Nama:        user.Nama,
-		Bio:         user.Bio,
-		PhotoProfil: user.PhotoProfil,
-	}, nil
+	return dto.EntityToUserResponse(user), nil
 }
 
 func (s *userService) RegisterUser(ctx context.Context, userCreateRequest dto.UserCreateRequest, photoProfil *multipart.FileHeader) (dto.UserResponse, error) {
@@ -117,27 +101,15 @@ func (s *userService) RegisterUser(ctx context.Context, userCreateRequest dto.Us
 		photoURL = uploadResult.SecureURL
 	}
 
-	user := entity.User{
-		Username:    userCreateRequest.Username,
-		Nama:        userCreateRequest.Nama,
-		Password:    userCreateRequest.Password,
-		Bio:         userCreateRequest.Bio,
-		PhotoProfil: photoURL,
-		Role:        helpers.ENUM_ROLE_USER,
-	}
+	user := &entity.User{}
+	userCreateRequest.ToModel(user, photoURL)
 
-	userRepspone, err := s.userRepository.CreateUser(ctx, user)
+	err := s.userRepository.CreateUser(ctx, user)
 	if err != nil {
 		return dto.UserResponse{}, dto.ErrCreateUser
 	}
 
-	return dto.UserResponse{
-		ID:          userRepspone.ID,
-		Username:    userRepspone.Username,
-		Nama:        userRepspone.Nama,
-		Bio:         userRepspone.Bio,
-		PhotoProfil: userRepspone.PhotoProfil,
-	}, nil
+	return dto.EntityToUserResponse(*user), nil
 }
 
 func (s *userService) LoginUser(ctx context.Context, req dto.UserLoginRequest) (entity.User, error) {
@@ -189,7 +161,12 @@ func (s *userService) UpdateUser(ctx context.Context, user dto.UserUpdateRequest
 	return nil
 }
 
-func (s *userService) DeleteUser(ctx context.Context, id int) error {
+func (s *userService) DeleteUser(ctx context.Context, idParam string) error {
+	id, err := utils.StringToUUID(idParam)
+	if err != nil {
+		return dto.ErrDeleteUser
+	}
+
 	if err := s.userRepository.DeleteUser(ctx, id); err != nil {
 		return dto.ErrDeleteUser
 	}

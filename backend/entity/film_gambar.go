@@ -1,12 +1,15 @@
 package entity
 
 import (
-	"gorm.io/gorm"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type FilmGambar struct {
-	gorm.Model
-	Url    string `json:"url"`
-	FilmID int    `json:"film_id" gorm:"index:idx_film_id"`
-	Film   Film   `gorm:"foreignKey:FilmID"`
+	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Url       string    `gorm:"type:text;not null"`
+	FilmID    uuid.UUID `gorm:"type:uuid;not null; index:idx_film_id"`
+	Film      Film      `gorm:"foreignKey:FilmID"`
+	CreatedAt time.Time `gorm:"type:timestamptz;default:now()"`
 }

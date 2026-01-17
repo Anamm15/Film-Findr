@@ -5,15 +5,17 @@ import (
 	"math"
 
 	"FilmFindr/entity"
+	"FilmFindr/helpers"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UserFilmRepository interface {
-	GetUserFilmByUserId(ctx context.Context, userId int, page int) ([]entity.UserFilm, int64, error)
+	GetUserFilmByUserId(ctx context.Context, userId uuid.UUID, offset int) ([]entity.UserFilm, int64, error)
 	CreateUserFilm(ctx context.Context, userFilm entity.UserFilm) (entity.UserFilm, error)
-	UpdateStatusUserFilm(ctx context.Context, userFilmId int, status string) error
-	CheckUserFilm(ctx context.Context, userId int, filmId int) (bool, error)
+	UpdateStatusUserFilm(ctx context.Context, userFilmId uuid.UUID, status string) error
+	CheckUserFilm(ctx context.Context, userId uuid.UUID, filmId uuid.UUID) (bool, error)
 }
 
 type userFilmRepository struct {
@@ -24,15 +26,9 @@ func NewUserFilmRepository(db *gorm.DB) UserFilmRepository {
 	return &userFilmRepository{db: db}
 }
 
-func (r *userFilmRepository) GetUserFilmByUserId(ctx context.Context, userId int, page int) ([]entity.UserFilm, int64, error) {
+func (r *userFilmRepository) GetUserFilmByUserId(ctx context.Context, userId uuid.UUID, offset int) ([]entity.UserFilm, int64, error) {
 	var userFilms []entity.UserFilm
 	var userFilmsCount int64
-
-	const limit = 5
-	if page < 1 {
-		page = 1
-	}
-	offset := (page - 1) * limit
 
 	if err := r.db.WithContext(ctx).
 		Model(&entity.UserFilm{}).
@@ -55,13 +51,13 @@ func (r *userFilmRepository) GetUserFilmByUserId(ctx context.Context, userId int
 			return db.Select("id", "nama")
 		}).
 		Order("created_at DESC").
-		Limit(limit).
+		Limit(helpers.LIMIT_FILM).
 		Offset(offset).
 		Find(&userFilms).Error; err != nil {
 		return nil, 0, err
 	}
 
-	totalPage := math.Ceil(float64(userFilmsCount) / float64(limit))
+	totalPage := math.Ceil(float64(userFilmsCount) / float64(helpers.LIMIT_FILM))
 	return userFilms, int64(totalPage), nil
 }
 
@@ -73,7 +69,7 @@ func (r *userFilmRepository) CreateUserFilm(ctx context.Context, userFilm entity
 	return userFilm, nil
 }
 
-func (r *userFilmRepository) UpdateStatusUserFilm(ctx context.Context, userFilmId int, status string) error {
+func (r *userFilmRepository) UpdateStatusUserFilm(ctx context.Context, userFilmId uuid.UUID, status string) error {
 	if err := r.db.WithContext(ctx).Table("user_films").Where("id = ?", userFilmId).Update("status", status).Error; err != nil {
 		return err
 	}
@@ -81,7 +77,7 @@ func (r *userFilmRepository) UpdateStatusUserFilm(ctx context.Context, userFilmI
 	return nil
 }
 
-func (r *userFilmRepository) CheckUserFilm(ctx context.Context, userId int, filmId int) (bool, error) {
+func (r *userFilmRepository) CheckUserFilm(ctx context.Context, userId uuid.UUID, filmId uuid.UUID) (bool, error) {
 	var userFilm entity.UserFilm
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ? AND film_id = ?", userId, filmId).
@@ -89,5 +85,5 @@ func (r *userFilmRepository) CheckUserFilm(ctx context.Context, userId int, film
 		return false, err
 	}
 
-	return userFilm.ID != 0, nil
+	return userFilm.ID != uuid.Nil, nil
 }

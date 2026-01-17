@@ -2,6 +2,11 @@ package dto
 
 import (
 	"errors"
+
+	"FilmFindr/entity"
+	"FilmFindr/helpers"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -55,13 +60,12 @@ type (
 	}
 
 	UserFilm struct {
-		ID     int          `json:"id"`
+		ID     uuid.UUID    `json:"id"`
 		Status string       `json:"status"`
 		Film   FilmResponse `json:"film"`
 	}
 
 	UserRequest struct {
-		ID          int    `json:"id"`
 		Nama        string `json:"nama" form:"nama" binding:"required"`
 		Username    string `json:"username" form:"username" binding:"required"`
 		Bio         string `json:"bio" form:"bio"`
@@ -69,23 +73,24 @@ type (
 	}
 
 	UserResponse struct {
-		ID          int    `json:"id"`
-		Nama        string `json:"nama"`
-		Username    string `json:"username"`
-		Bio         string `json:"bio"`
-		PhotoProfil string `json:"photo_profil"`
+		ID          uuid.UUID `json:"id"`
+		Nama        string    `json:"nama"`
+		Username    string    `json:"username"`
+		Bio         string    `json:"bio"`
+		PhotoProfil string    `json:"photo_profil"`
+		Role        string    `json:"role"`
 	}
 
 	UserUpdateRequest struct {
-		ID             int    `json:"id"`
-		Nama           string `json:"nama" form:"nama"`
-		Bio            string `json:"bio" form:"bio"`
-		Username       string `json:"username" form:"username"`
-		OldPhotoProfil string `json:"old_photo_profil"`
+		ID             uuid.UUID `json:"id"`
+		Nama           string    `json:"nama" form:"nama"`
+		Bio            string    `json:"bio" form:"bio"`
+		Username       string    `json:"username" form:"username"`
+		OldPhotoProfil string    `json:"old_photo_profil"`
 	}
 
 	UserResponseWithFilm struct {
-		ID          int        `json:"id"`
+		ID          uuid.UUID  `json:"id"`
 		Nama        string     `json:"nama"`
 		Username    string     `json:"username"`
 		Bio         string     `json:"bio"`
@@ -93,3 +98,23 @@ type (
 		UserFilm    []UserFilm `json:"user_film"`
 	}
 )
+
+func EntityToUserResponse(user entity.User) UserResponse {
+	return UserResponse{
+		ID:          user.ID,
+		Nama:        user.Nama,
+		Username:    user.Username,
+		Bio:         user.Bio,
+		PhotoProfil: user.PhotoProfil,
+		Role:        user.Role,
+	}
+}
+
+func (r *UserCreateRequest) ToModel(user *entity.User, profileURL string) {
+	user.Nama = r.Nama
+	user.Username = r.Username
+	user.Password = r.Password
+	user.Bio = r.Bio
+	user.PhotoProfil = profileURL
+	user.Role = helpers.ENUM_ROLE_USER
+}

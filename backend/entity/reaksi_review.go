@@ -1,15 +1,17 @@
 package entity
 
 import (
-	"gorm.io/gorm"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type ReaksiReview struct {
-	gorm.Model
-	ID       int    `json:"id"`
-	Reaksi   string `json:"reaksi" binding:"required"`
-	UserID   int    `json:"user_id" gorm:"index:idx_user_review"`
-	ReviewID int    `json:"komentar_id" gorm:"index:idx_user_review"`
-	User     User   `gorm:"foreignKey:UserID"`
-	Review   Review `gorm:"foreignKey:ReviewID"`
+	ID        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Reaksi    string    `gorm:"type:varchar(50);not null"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null; index:idx_user_review"`
+	ReviewID  uuid.UUID `gorm:"type:uuid;not null; index:idx_user_review"`
+	User      User      `gorm:"foreignKey:UserID"`
+	Review    Review    `gorm:"foreignKey:ReviewID"`
+	CreatedAt time.Time `gorm:"type:timestamptz;default:now()"`
 }

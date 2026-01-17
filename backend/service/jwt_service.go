@@ -7,17 +7,18 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type JWTService interface {
-	GenerateToken(userId int, role string) string
+	GenerateToken(userId uuid.UUID, role string) string
 	ValidateToken(token string) (*jwt.Token, error)
-	GetDataByToken(token string) (int, string, error)
+	GetDataByToken(token string) (uuid.UUID, string, error)
 }
 
 type jwtUserClaim struct {
-	UserId int    `json:"user_id"`
-	Role   string `json:"role"`
+	UserId uuid.UUID `json:"user_id"`
+	Role   string    `json:"role"`
 	jwt.RegisteredClaims
 }
 
@@ -41,7 +42,7 @@ func getSecretKey() string {
 	return secretKey
 }
 
-func (j *jwtService) GenerateToken(userId int, role string) string {
+func (j *jwtService) GenerateToken(userId uuid.UUID, role string) string {
 	claims := jwtUserClaim{
 		UserId: userId,
 		Role:   role,
@@ -68,31 +69,19 @@ func (j *jwtService) parseToken(t_ *jwt.Token) (any, error) {
 }
 
 func (j *jwtService) ValidateToken(token string) (*jwt.Token, error) {
-	return jwt.Parse(token, j.parseToken)
+	return jwt.ParseWithClaims(token, &jwtUserClaim{}, j.parseToken)
 }
 
-func (j *jwtService) GetDataByToken(token string) (int, string, error) {
+func (j *jwtService) GetDataByToken(token string) (uuid.UUID, string, error) {
 	t_Token, err := j.ValidateToken(token)
 	if err != nil {
-		return 0, "", err
+		return uuid.Nil, "", err
 	}
 
-	claims, ok := t_Token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, "", fmt.Errorf("cannot parse claims")
+	claims, ok := t_Token.Claims.(*jwtUserClaim)
+	if !ok || !t_Token.Valid {
+		return uuid.Nil, "", fmt.Errorf("invalid token claims")
 	}
 
-	idFloat, ok := claims["user_id"].(float64)
-	if !ok {
-		return 0, "", fmt.Errorf("user_id not found or not valid")
-	}
-	userID := int(idFloat)
-
-	// Ambil role
-	role, ok := claims["role"].(string)
-	if !ok {
-		return 0, "", fmt.Errorf("role not found or not valid")
-	}
-
-	return userID, role, nil
+	return claims.UserId, claims.Role, nil
 }

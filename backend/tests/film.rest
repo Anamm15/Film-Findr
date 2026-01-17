@@ -1,0 +1,7 @@
+@baseUrl = http://localhost:5000/api/v1/films
+
+###
+GET {{baseUrl}}/get-top-film
+
+###
+GET {{baseUrl}}/get-trending-film

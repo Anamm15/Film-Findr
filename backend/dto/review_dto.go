@@ -3,6 +3,10 @@ package dto
 import (
 	"errors"
 	"time"
+
+	"FilmFindr/entity"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -35,44 +39,34 @@ var (
 
 type (
 	UserReview struct {
-		ID       int    `json:"id"`
-		Username string `json:"username"`
+		ID          uuid.UUID `json:"id"`
+		Username    string    `json:"username"`
+		PhotoProfil string    `json:"photo_profil"`
 	}
 
 	UserReaksiReview struct {
-		ID     int    `json:"id"`
-		Reaksi string `json:"reaksi"`
-		UserID int    `json:"user_id"`
+		ID     uuid.UUID `json:"id"`
+		Reaksi string    `json:"reaksi"`
+		UserID uuid.UUID `json:"user_id"`
 	}
 
 	ReviewResponse struct {
-		ID         int              `json:"id"`
-		Komentar   string           `json:"komentar"`
-		Rating     int              `json:"rating"`
-		User       UserReview       `json:"user"`
-		UserReaksi UserReaksiReview `json:"user_reaksi"`
+		ID         uuid.UUID         `json:"id"`
+		Komentar   string            `json:"komentar"`
+		Rating     int               `json:"rating"`
+		User       UserReview        `json:"user"`
+		UserReaksi *UserReaksiReview `json:"user_reaksi"`
 	}
 
-	ReviewByFilmResponse struct {
-		CountPage int              `json:"count_page"`
-		Reviews   []ReviewResponse `json:"reviews"`
-	}
-
-	ReviewByUserResponse struct {
+	PaginatedReview struct {
 		CountPage int              `json:"count_page"`
 		Reviews   []ReviewResponse `json:"reviews"`
 	}
 
 	CreateReviewRequest struct {
-		FilmID   int    `json:"film_id" validate:"required" binding:"required"`
-		Komentar string `json:"komentar" validate:"required" binding:"required"`
-		Rating   int    `json:"rating" validate:"required" binding:"required"`
-	}
-
-	CreateReviewResponse struct {
-		ID       int    `json:"id"`
-		Komentar string `json:"komentar"`
-		Rating   int    `json:"rating"`
+		FilmID   uuid.UUID `json:"film_id" binding:"required"`
+		Komentar string    `json:"komentar" binding:"required"`
+		Rating   int       `json:"rating" binding:"required"`
 	}
 
 	UpdateReviewRequest struct {
@@ -94,3 +88,24 @@ type (
 		Count  int `json:"count"`
 	}
 )
+
+func (r *CreateReviewRequest) ToModel(review *entity.Review, userID uuid.UUID) {
+	review.FilmID = r.FilmID
+	review.UserID = userID
+	review.Komentar = r.Komentar
+	review.Rating = r.Rating
+}
+
+func EntityToReviewResponse(review entity.Review, userReaksiReview *UserReaksiReview) ReviewResponse {
+	return ReviewResponse{
+		ID:         review.ID,
+		Komentar:   review.Komentar,
+		Rating:     review.Rating,
+		UserReaksi: userReaksiReview,
+		User: UserReview{
+			ID:          review.User.ID,
+			Username:    review.User.Username,
+			PhotoProfil: review.User.PhotoProfil,
+		},
+	}
+}

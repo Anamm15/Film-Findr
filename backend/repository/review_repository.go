@@ -6,17 +6,19 @@ import (
 
 	"FilmFindr/dto"
 	"FilmFindr/entity"
+	"FilmFindr/helpers"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ReviewRepository interface {
-	GetReviewByFilmId(ctx context.Context, filmId int, page int) ([]entity.Review, int64, error)
-	GetReviewByUserId(ctx context.Context, id int, page int) ([]entity.Review, int64, error)
-	GetRatingFromMaterializedView(ctx context.Context, filmId int) (float64, error)
-	CreateReview(ctx context.Context, review entity.Review) (entity.Review, error)
-	UpdateReview(ctx context.Context, reviewId int, review dto.UpdateReviewRequest) error
-	DeleteReview(ctx context.Context, id int) error
+	GetReviewByFilmId(ctx context.Context, filmId uuid.UUID, offset int) ([]entity.Review, int64, error)
+	GetReviewByUserId(ctx context.Context, id uuid.UUID, offset int) ([]entity.Review, int64, error)
+	GetRatingFromMaterializedView(ctx context.Context, filmId uuid.UUID) (float64, error)
+	CreateReview(ctx context.Context, review *entity.Review) error
+	UpdateReview(ctx context.Context, reviewId uuid.UUID, review dto.UpdateReviewRequest) error
+	DeleteReview(ctx context.Context, id uuid.UUID) error
 	CountReviews(ctx context.Context) (int64, error)
 	GetWeeklyReviews(ctx context.Context) ([]dto.WeeklyReview, error)
 	GetListRatingAndCount(ctx context.Context) ([]dto.RatingListAndCountResponse, error)
@@ -30,15 +32,9 @@ func NewReviewRepository(db *gorm.DB) ReviewRepository {
 	return &reviewRepository{db: db}
 }
 
-func (r *reviewRepository) GetReviewByFilmId(ctx context.Context, filmId int, page int) ([]entity.Review, int64, error) {
+func (r *reviewRepository) GetReviewByFilmId(ctx context.Context, filmId uuid.UUID, offset int) ([]entity.Review, int64, error) {
 	var reviews []entity.Review
 	var countReview int64
-
-	const limit = 5
-	if page < 1 {
-		page = 1
-	}
-	offset := (page - 1) * limit
 
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Review{}).
@@ -48,28 +44,23 @@ func (r *reviewRepository) GetReviewByFilmId(ctx context.Context, filmId int, pa
 	}
 
 	if err := r.db.WithContext(ctx).
-		Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Preload("User", func(db *gorm.DB) *gorm.DB { return db.Select("id", "username") }).
+		Preload("User", func(db *gorm.DB) *gorm.DB { return db.Select("id", "username", "photo_profil") }).
 		Select("id", "komentar", "rating", "created_at", "user_id").
-		Where("film_id = ?", filmId).Find(&reviews).Error; err != nil {
+		Where("film_id = ?", filmId).
+		Order("created_at DESC").
+		Limit(helpers.LIMIT_REVIEW).
+		Offset(offset).
+		Find(&reviews).Error; err != nil {
 		return nil, 0, err
 	}
 
-	totalPage := math.Ceil(float64(countReview) / float64(limit))
+	totalPage := math.Ceil(float64(countReview) / float64(helpers.LIMIT_REVIEW))
 	return reviews, int64(totalPage), nil
 }
 
-func (r *reviewRepository) GetReviewByUserId(ctx context.Context, id int, page int) ([]entity.Review, int64, error) {
+func (r *reviewRepository) GetReviewByUserId(ctx context.Context, id uuid.UUID, offset int) ([]entity.Review, int64, error) {
 	var review []entity.Review
 	var countReview int64
-
-	const limit = 5
-	if page < 1 {
-		page = 1
-	}
-	offset := (page - 1) * limit
 
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Review{}).
@@ -79,20 +70,21 @@ func (r *reviewRepository) GetReviewByUserId(ctx context.Context, id int, page i
 	}
 
 	if err := r.db.WithContext(ctx).
-		Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Select("id", "komentar", "rating", "created_at").
+		Select("id", "komentar", "rating", "created_at", "user_id").
+		Preload("User", func(db *gorm.DB) *gorm.DB { return db.Select("id", "username", "photo_profil") }).
 		Where("user_id = ?", id).
+		Order("created_at DESC").
+		Limit(helpers.LIMIT_REVIEW).
+		Offset(offset).
 		Find(&review).Error; err != nil {
 		return nil, 0, err
 	}
 
-	totalPage := math.Ceil(float64(countReview) / float64(limit))
+	totalPage := math.Ceil(float64(countReview) / float64(helpers.LIMIT_REVIEW))
 	return review, int64(totalPage), nil
 }
 
-func (r *reviewRepository) GetRatingFromMaterializedView(ctx context.Context, filmId int) (float64, error) {
+func (r *reviewRepository) GetRatingFromMaterializedView(ctx context.Context, filmId uuid.UUID) (float64, error) {
 	var rating dto.RatingFilm
 
 	err := r.db.WithContext(ctx).
@@ -105,14 +97,14 @@ func (r *reviewRepository) GetRatingFromMaterializedView(ctx context.Context, fi
 	return rating.Rating, nil
 }
 
-func (r *reviewRepository) CreateReview(ctx context.Context, review entity.Review) (entity.Review, error) {
+func (r *reviewRepository) CreateReview(ctx context.Context, review *entity.Review) error {
 	if err := r.db.WithContext(ctx).Create(&review).Error; err != nil {
-		return entity.Review{}, err
+		return err
 	}
-	return review, nil
+	return nil
 }
 
-func (r *reviewRepository) UpdateReview(ctx context.Context, reviewId int, req dto.UpdateReviewRequest) error {
+func (r *reviewRepository) UpdateReview(ctx context.Context, reviewId uuid.UUID, req dto.UpdateReviewRequest) error {
 	var review entity.Review
 	if err := r.db.First(&review, reviewId).Error; err != nil {
 		return err
@@ -132,7 +124,7 @@ func (r *reviewRepository) UpdateReview(ctx context.Context, reviewId int, req d
 	return nil
 }
 
-func (r *reviewRepository) DeleteReview(ctx context.Context, id int) error {
+func (r *reviewRepository) DeleteReview(ctx context.Context, id uuid.UUID) error {
 	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&entity.Review{}).Error; err != nil {
 		return err
 	}

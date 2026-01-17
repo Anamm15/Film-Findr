@@ -6,12 +6,13 @@ import (
 	"FilmFindr/dto"
 	"FilmFindr/entity"
 	"FilmFindr/repository"
+	"FilmFindr/utils"
 )
 
 type GenreService interface {
-	GetAllGenre(ctx context.Context) ([]dto.GenreRequest, error)
+	GetAllGenre(ctx context.Context) ([]dto.GenreResponse, error)
 	CreateGenre(ctx context.Context, genre dto.GenreRequest) (dto.GenreResponse, error)
-	DeleteGenre(ctx context.Context, genreId int) error
+	DeleteGenre(ctx context.Context, genreId string) error
 }
 
 type genreService struct {
@@ -24,17 +25,18 @@ func NewGenreService(genreRepository repository.GenreRepository) GenreService {
 	}
 }
 
-func (s *genreService) GetAllGenre(ctx context.Context) ([]dto.GenreRequest, error) {
+func (s *genreService) GetAllGenre(ctx context.Context) ([]dto.GenreResponse, error) {
 	genres, err := s.genreRepository.GetAllGenre(ctx)
 	if err != nil {
 		return nil, dto.ErrGetAllGenre
 	}
 
-	var response []dto.GenreRequest
+	var response []dto.GenreResponse
 	for _, genre := range genres {
-		response = append(response, dto.GenreRequest{
-			ID:   genre.ID,
-			Nama: genre.Nama,
+		response = append(response, dto.GenreResponse{
+			ID:        genre.ID,
+			Nama:      genre.Nama,
+			CreatedAt: genre.CreatedAt,
 		})
 	}
 
@@ -43,7 +45,6 @@ func (s *genreService) GetAllGenre(ctx context.Context) ([]dto.GenreRequest, err
 
 func (s *genreService) CreateGenre(ctx context.Context, genre dto.GenreRequest) (dto.GenreResponse, error) {
 	GenreRequest := entity.Genre{
-		ID:   genre.ID,
 		Nama: genre.Nama,
 	}
 
@@ -60,8 +61,13 @@ func (s *genreService) CreateGenre(ctx context.Context, genre dto.GenreRequest) 
 	return response, nil
 }
 
-func (s *genreService) DeleteGenre(ctx context.Context, genreId int) error {
-	err := s.genreRepository.DeleteGenre(ctx, genreId)
+func (s *genreService) DeleteGenre(ctx context.Context, genreIDParam string) error {
+	genreID, err := utils.StringToUUID(genreIDParam)
+	if err != nil {
+		return err
+	}
+
+	err = s.genreRepository.DeleteGenre(ctx, genreID)
 	if err != nil {
 		return dto.ErrDeleteGenre
 	}

@@ -3,6 +3,8 @@ package dto
 import (
 	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -28,23 +30,23 @@ var (
 
 type (
 	UserFilmCreateRequest struct {
-		UserID int    `json:"user_id" validate:"required"`
-		FilmID int    `json:"film_id" validate:"required"`
-		Status string `json:"status" validate:"required"`
+		UserID uuid.UUID `json:"user_id" validate:"required"`
+		FilmID uuid.UUID `json:"film_id" validate:"required"`
+		Status string    `json:"status" validate:"required"`
 	}
 
 	UserFilmUpdateStatusRequest struct {
-		Status string `json:"status" validate:"required"`
-		FilmID int    `json:"film_id" validate:"required"`
+		Status string    `json:"status" validate:"required"`
+		FilmID uuid.UUID `json:"film_id" validate:"required"`
 	}
 
 	UserFilmResponse struct {
-		ID     int          `json:"id"`
-		Status string       `json:"status"`
-		Film   FilmResponse `json:"film"`
+		ID     uuid.UUID          `json:"id"`
+		Status string             `json:"status"`
+		Film   FilmDetailResponse `json:"film"`
 	}
 
-	GetUserFilmResponse struct {
+	PaginatedUserFilmResponse struct {
 		UserFilms []UserFilmResponse `json:"user_films"`
 		CountPage int                `json:"count_page"`
 	}

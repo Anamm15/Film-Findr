@@ -1,6 +1,10 @@
 package dto
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 const (
 	MESSAGE_FAILED_CREATED_FILM_GENRE = "Failed to create film genre"
@@ -17,12 +21,12 @@ var (
 
 type (
 	FilmGenreRequest struct {
-		FilmId  int `json:"film_id" validate:"required"`
-		GenreId int `json:"genre_id" validate:"required"`
+		FilmId  uuid.UUID `json:"film_id"`
+		GenreId uuid.UUID `json:"genre_id"`
 	}
 
 	FilmGenreResponse struct {
-		FilmId  int `json:"film_id"`
-		GenreId int `json:"genre_id"`
+		FilmId  uuid.UUID `json:"film_id"`
+		GenreId uuid.UUID `json:"genre_id"`
 	}
 )

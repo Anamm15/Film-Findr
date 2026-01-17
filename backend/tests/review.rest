@@ -1,0 +1,7 @@
+@baseUrl = http://localhost:5000/api/v1/reviews
+
+###
+GET {{baseUrl}}/film/f22abc99-9c0b-4ef8-bb6d-6bb9bd777f37?page=2
+
+###
+GET {{baseUrl}}/user/c33abc99-9c0b-4df8-cb6d-6bb9bd777d01

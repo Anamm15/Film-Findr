@@ -1,12 +1,15 @@
 package entity
 
 import (
-	"gorm.io/gorm"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Genre struct {
-	gorm.Model
-	ID        int         `json:"id"`
-	Nama      string      `json:"nama" binding:"required"`
+	ID        uuid.UUID   `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Nama      string      `gorm:"type:varchar(255);not null;"`
 	FilmGenre []FilmGenre `json:"film_genre" gorm:"foreignKey:GenreID"`
+	CreatedAt time.Time   `gorm:"type:timestamptz;default:now()"`
+	UpdatedAt time.Time   `gorm:"type:timestamptz;default:now()"`
 }

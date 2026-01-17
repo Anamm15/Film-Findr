@@ -35,6 +35,7 @@ const (
 	MESSAGE_LOGIN_FIRST               = "Please login first"
 	MESSAGE_INVALID_TOKEN             = "Invalid token, please login again"
 	MESSAGE_FAILED_DENIED_ACCESS      = "Access is denied"
+	MESSAGE_FAILED_PARSE_UUID         = "Failed to parse UUID"
 )
 
 const (
