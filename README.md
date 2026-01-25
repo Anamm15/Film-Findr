@@ -6,17 +6,48 @@
 
 ## 🚀 Fitur Unggulan
 
-✨ **Autentikasi Aman**  
-Daftar & login dengan cepat dan aman untuk menikmati fitur penuh.
+✨ **Autentikasi & Manajemen User (Secure Authentication)**  
+Sistem autentikasi aman menggunakan mekanisme token (JWT / session-based)  
+untuk memastikan akses pengguna terkontrol dan data tetap terlindungi.
 
-📝 **Review Film**  
-Tulis ulasan dan beri rating untuk setiap film yang kamu tonton.
+📝 **Review & Rating Film**  
+Pengguna dapat menulis ulasan dan memberikan rating pada film.  
+Data review disimpan secara terstruktur untuk keperluan analitik dan rekomendasi.
+
+🔥 **Weekly Trending Film**  
+Menampilkan daftar film yang sedang trending setiap minggu berdasarkan:
+- Frekuensi review & rating
+- Aktivitas pengguna
+- Popularitas dalam periode waktu tertentu  
+Menggunakan agregasi data dan time-based analysis.
+
+📊 **Sentiment Analysis Review**  
+Ulasan pengguna dianalisis untuk mengklasifikasikan sentimen:
+- Positif
+- Negatif  
+
+Hasil analisis digunakan untuk:
+- Insight kualitas film
+- Ringkasan opini publik
+- Pendukung sistem rekomendasi
+
+🤖 **AI Chatbot Film Assistant**  
+- Memberikan rekomendasi film berdasarkan preferensi pengguna
+- Menjawab pertanyaan seputar film, genre, aktor, atau review
+- Membantu eksplorasi film secara interaktif dan kontekstual
 
 🎯 **Watch List Pribadi**  
-Simpan film yang ingin kamu tonton nanti dalam daftar pribadi.
+Fitur manajemen watch list untuk menyimpan film yang ingin ditonton,  
+lengkap dengan status (planned, watching, completed).
 
-🔎 **Eksplorasi Film**  
-Temukan berbagai film menarik dari berbagai genre dan kategori.
+🔎 **Eksplorasi & Pencarian Film**  
+Fitur pencarian dan eksplorasi film berdasarkan:
+- Judul
+- Sinopsis
+- Tahun Rilis
+- Genre
+Dirancang untuk skalabilitas dan performa query yang optimal.
+
 
 ---
 
@@ -78,4 +109,5 @@ npm install
 ```bash
 npm run dev
 ```
+
 
